@@ -37,46 +37,24 @@ st.set_page_config(
 # ─── CSS Customizado ─────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* Tipografia: IBM Plex Serif (títulos) + IBM Plex Sans (corpo) —
-   referência sutil ao ecossistema IBM watsonx citado no desafio. */
+/* Tipografia: IBM Plex Serif (títulos) + IBM Plex Sans (corpo) */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap');
 
-/* Forçar tema claro uniforme independente do tema selecionado no Streamlit (dark/light) */
+/* Redefinir variáveis do tema do Streamlit para forçar tema claro legível */
 :root, [data-theme="dark"], [data-theme="light"], body, .stApp {
     --text-color: #1E2A24 !important;
     --background-color: #FAF8F2 !important;
     --secondary-background-color: #EFE9D8 !important;
     --primary-color: #2F5233 !important;
-    background-color: #FAF8F2 !important;
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.stApp {
     background: linear-gradient(180deg, #FAF8F2 0%, #F5F2E9 100%) !important;
     color: #1E2A24 !important;
-    font-family: 'IBM Plex Sans', sans-serif;
 }
 
-html, body, [class*="css"] {
-    font-family: 'IBM Plex Sans', sans-serif;
-}
-
-/* Forçar a cor do texto escuro para todos os componentes principais */
-.stApp p, .stApp span, .stApp label, .stApp div,
-.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
-.stApp li, .stApp td, .stApp th, .stApp input, .stApp textarea,
-[data-testid="stMarkdownContainer"] *,
-[data-testid="stMetricValue"] *,
-[data-testid="stMetricLabel"] *,
-[data-testid="stMetricDelta"] *,
-[data-testid="stCaptionContainer"] *,
-[data-testid="stExpander"] *,
-[data-baseweb="select"] *,
-[data-baseweb="popover"] *,
-[data-baseweb="menu"] *,
-[data-baseweb="option"] *,
-[data-testid="stWidgetLabel"] *,
-.stSelectbox *, .stMultiSelect *, .stSlider * {
-    color: #1E2A24 !important;
-}
-
-/* Sidebar: tom de capa de dossiê, separado por uma régua fina */
+/* Sidebar: tom de capa de dossiê */
 [data-testid="stSidebar"] {
     background: #EFE9D8 !important;
     border-right: 1px solid #C9BFA0 !important;
@@ -85,7 +63,7 @@ html, body, [class*="css"] {
     color: #1E2A24 !important;
 }
 
-/* Cards de métricas: régua fina + acento verde à esquerda */
+/* Cards de métricas */
 [data-testid="stMetric"] {
     background: #FFFFFF !important;
     border: 1px solid #E1DAC5 !important;
@@ -93,31 +71,31 @@ html, body, [class*="css"] {
     border-radius: 8px;
     padding: 16px;
 }
-[data-testid="stMetric"] * {
-    color: #1E2A24 !important;
-}
 
 /* Títulos em serifada, cor verde-safra */
-h1, h2, h3 {
+h1, h2, h3, h4, h5, h6 {
     font-family: 'IBM Plex Serif', serif !important;
     color: #2F5233 !important;
     font-weight: 600 !important;
 }
 
-/* Botão primário: verde-safra sólido, texto pergaminho */
-.stButton > button, .stButton > button * {
-    background: #2F5233 !important;
+/* Botão primário (com texto pergaminho claro visível) */
+.stButton > button {
+    background-color: #2F5233 !important;
     color: #FAF8F2 !important;
     border: 1px solid #223D26 !important;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 16px;
-    padding: 12px 28px;
-    transition: background 0.2s ease;
-    width: 100%;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    padding: 10px 24px !important;
+    transition: background 0.2s ease !important;
+    width: 100% !important;
+}
+.stButton > button *, .stButton > button p, .stButton > button div, .stButton > button span {
+    color: #FAF8F2 !important;
 }
 .stButton > button:hover {
-    background: #223D26 !important;
+    background-color: #223D26 !important;
     border-color: #1a2e1c !important;
 }
 
@@ -132,25 +110,25 @@ h1, h2, h3 {
 }
 
 /* Red flag card — tons terrosos por severidade */
-.flag-critico, .flag-critico * {
-    background: rgba(166, 50, 27, 0.08);
-    border-left: 4px solid #A6321B;
+.flag-critico {
+    background: rgba(166, 50, 27, 0.08) !important;
+    border-left: 4px solid #A6321B !important;
     border-radius: 6px;
     padding: 12px 16px;
     margin: 8px 0;
     color: #1E2A24 !important;
 }
-.flag-alto, .flag-alto * {
-    background: rgba(168, 85, 31, 0.08);
-    border-left: 4px solid #A8551F;
+.flag-alto {
+    background: rgba(168, 85, 31, 0.08) !important;
+    border-left: 4px solid #A8551F !important;
     border-radius: 6px;
     padding: 12px 16px;
     margin: 8px 0;
     color: #1E2A24 !important;
 }
-.flag-medio, .flag-medio * {
-    background: rgba(138, 106, 20, 0.08);
-    border-left: 4px solid #8A6A14;
+.flag-medio {
+    background: rgba(138, 106, 20, 0.08) !important;
+    border-left: 4px solid #8A6A14 !important;
     border-radius: 6px;
     padding: 12px 16px;
     margin: 8px 0;
@@ -180,24 +158,24 @@ hr {
     background: rgba(47, 82, 51, 0.15) !important;
     color: #2F5233 !important;
 }
-.stTabs [aria-selected="true"] * {
-    color: #2F5233 !important;
-}
 
 /* Selectbox e Popovers / Dropdowns */
 [data-baseweb="select"] > div, [data-baseweb="popover"], [data-baseweb="menu"] {
     background-color: #FFFFFF !important;
+    color: #1E2A24 !important;
 }
 
 /* Info boxes */
-.info-card, .info-card * {
-    background: #FFFFFF;
-    border: 1px solid #E1DAC5;
-    border-left: 3px solid #2F5233;
-    border-radius: 8px;
-    padding: 16px;
-    margin: 8px 0;
+.info-card {
+    background: #FFFFFF !important;
+    border: 1px solid #E1DAC5 !important;
+    border-left: 3px solid #2F5233 !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    margin: 4px 0 !important;
     color: #1E2A24 !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -248,7 +226,7 @@ tab_relatorio, tab_simulador, tab_openfinance = st.tabs([
 with tab_relatorio:
     st.markdown("## 📋 Análise de Risco de Crédito")
 
-    col_info, col_btn = st.columns([3, 1])
+    col_info, col_btn = st.columns([3.5, 1.2], vertical_alignment="center")
     with col_info:
         dados_preview = CLIENTES.get(cnpj_selecionado, {})
         st.markdown(f"""
