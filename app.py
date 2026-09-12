@@ -15,6 +15,7 @@ from agro_risk import calcular_score_agro
 from macro_context import (
     calcular_fator_estresse_macro,
     cenario_choque_petroleo,
+    buscar_variaveis_com_gemini,
     VARIAVEIS_BASE,
     PARAMETROS_MACRO,
     LIMIAR_ALERTA_ESTRESSE,
@@ -514,6 +515,51 @@ with tab_relatorio:
 # ===========================================================================
 # TAB 2: SIMULADOR DE CENÁRIO MACRO
 # ===========================================================================
+
+# ── Inicializar session_state dos sliders (uma vez) ─────────────────────
+for _k, _v in [
+    ("sim_cambio",  VARIAVEIS_BASE["cambio_usd_brl"]),
+    ("sim_petro",   VARIAVEIS_BASE["petroleo_brent_usd"]),
+    ("sim_fertil",  VARIAVEIS_BASE["indice_fertilizantes"]),
+    ("sim_selic",   VARIAVEIS_BASE["selic_pct"]),
+    ("sim_geop",    VARIAVEIS_BASE["risco_geopolitico"]),
+]:
+    if _k not in st.session_state:
+        st.session_state[_k] = _v
+
+
+# ── Callbacks dos presets (executam ANTES do rerun dos widgets) ──────────
+def _preset_base():
+    st.session_state["sim_cambio"]  = VARIAVEIS_BASE["cambio_usd_brl"]
+    st.session_state["sim_petro"]   = VARIAVEIS_BASE["petroleo_brent_usd"]
+    st.session_state["sim_fertil"]  = VARIAVEIS_BASE["indice_fertilizantes"]
+    st.session_state["sim_selic"]   = VARIAVEIS_BASE["selic_pct"]
+    st.session_state["sim_geop"]    = VARIAVEIS_BASE["risco_geopolitico"]
+
+def _preset_choque():
+    choque = cenario_choque_petroleo(1.65)
+    v = choque["variaveis_cenario"]
+    st.session_state["sim_cambio"]  = v["cambio_usd_brl"]
+    st.session_state["sim_petro"]   = v["petroleo_brent_usd"]
+    st.session_state["sim_fertil"]  = v["indice_fertilizantes"]
+    st.session_state["sim_selic"]   = v["selic_pct"]
+    st.session_state["sim_geop"]    = v["risco_geopolitico"]
+
+def _preset_selic():
+    st.session_state["sim_cambio"]  = 5.90
+    st.session_state["sim_petro"]   = 88.0
+    st.session_state["sim_fertil"]  = 155.0
+    st.session_state["sim_selic"]   = 16.0
+    st.session_state["sim_geop"]    = 30.0
+
+def _preset_cambio():
+    st.session_state["sim_cambio"]  = 7.20
+    st.session_state["sim_petro"]   = 90.0
+    st.session_state["sim_fertil"]  = 160.0
+    st.session_state["sim_selic"]   = 11.75
+    st.session_state["sim_geop"]    = 35.0
+
+
 with tab_simulador:
     st.markdown("## 🎛️ Simulador de Cenário Macroeconômico")
     st.markdown(
@@ -522,46 +568,60 @@ with tab_simulador:
     )
 
     # ── Preset de Cenários ──────────────────────────────────────────────────
-    st.markdown("#### ⚡ Cenários Pré-definidos")
+    st.markdown("#### ⚡ Cenários Pré-definidos 🔗")
     pc1, pc2, pc3, pc4 = st.columns(4)
 
     with pc1:
-        if st.button("🟢 Base (Atual)", use_container_width=True):
-            st.session_state["sim_cambio"]  = VARIAVEIS_BASE["cambio_usd_brl"]
-            st.session_state["sim_petro"]   = VARIAVEIS_BASE["petroleo_brent_usd"]
-            st.session_state["sim_fertil"]  = VARIAVEIS_BASE["indice_fertilizantes"]
-            st.session_state["sim_selic"]   = VARIAVEIS_BASE["selic_pct"]
-            st.session_state["sim_geop"]    = VARIAVEIS_BASE["risco_geopolitico"]
-
+        st.button("🟢 Base (Atual)", use_container_width=True, on_click=_preset_base)
     with pc2:
-        if st.button("🔴 Choque Petróleo (+65%)", use_container_width=True):
-            choque = cenario_choque_petroleo(1.65)
-            v = choque["variaveis_cenario"]
-            st.session_state["sim_cambio"]  = v["cambio_usd_brl"]
-            st.session_state["sim_petro"]   = v["petroleo_brent_usd"]
-            st.session_state["sim_fertil"]  = v["indice_fertilizantes"]
-            st.session_state["sim_selic"]   = v["selic_pct"]
-            st.session_state["sim_geop"]    = v["risco_geopolitico"]
-
+        st.button("🔴 Choque Petróleo (+65%)", use_container_width=True, on_click=_preset_choque)
     with pc3:
-        if st.button("🟠 Selic Alta (16%)", use_container_width=True):
-            st.session_state["sim_cambio"]  = 5.90
-            st.session_state["sim_petro"]   = 88.0
-            st.session_state["sim_fertil"]  = 155.0
-            st.session_state["sim_selic"]   = 16.0
-            st.session_state["sim_geop"]    = 30.0
-
+        st.button("🟠 Selic Alta (16%)", use_container_width=True, on_click=_preset_selic)
     with pc4:
-        if st.button("🟡 Câmbio Estressado (R$7,20)", use_container_width=True):
-            st.session_state["sim_cambio"]  = 7.20
-            st.session_state["sim_petro"]   = 90.0
-            st.session_state["sim_fertil"]  = 160.0
-            st.session_state["sim_selic"]   = 11.75
-            st.session_state["sim_geop"]    = 35.0
+        st.button("🟡 Câmbio Estressado (R$7,20)", use_container_width=True, on_click=_preset_cambio)
 
     st.divider()
 
-    # ── Sliders ─────────────────────────────────────────────────────────────
+    # ── Busca de Dados Reais com IA ─────────────────────────────────────────
+    st.markdown("#### 🤖 Dados Reais via IA (Gemini)")
+    col_ia_btn, col_ia_info = st.columns([1, 3])
+
+    with col_ia_btn:
+        buscar_ia = st.button("🔍 Buscar Dados Atuais", use_container_width=True)
+
+    with col_ia_info:
+        st.caption(
+            "Usa o Google Gemini com busca na web para obter os valores "
+            "macroeconômicos mais recentes e preencher os sliders automaticamente."
+        )
+
+    if buscar_ia:
+        with st.spinner("🌐 Consultando Gemini + Google Search..."):
+            resultado_ia = buscar_variaveis_com_gemini()
+
+        if resultado_ia and "erro" not in resultado_ia:
+            st.session_state["sim_cambio"]  = resultado_ia["cambio_usd_brl"]
+            st.session_state["sim_petro"]   = resultado_ia["petroleo_brent_usd"]
+            st.session_state["sim_fertil"]  = resultado_ia["indice_fertilizantes"]
+            st.session_state["sim_selic"]   = resultado_ia["selic_pct"]
+            st.session_state["sim_geop"]    = resultado_ia["risco_geopolitico"]
+
+            fonte = resultado_ia.get("fonte", "Google Search via Gemini")
+            data_c = resultado_ia.get("data_consulta", "—")
+
+            st.success(
+                f"✅ Variáveis atualizadas com sucesso! "
+                f"Fonte: {fonte} | Data: {data_c}"
+            )
+            st.rerun()
+        elif resultado_ia and "erro" in resultado_ia:
+            st.error(f"❌ Erro na consulta: {resultado_ia['erro']}")
+        else:
+            st.warning("⚠️ Não foi possível obter os dados. Tente novamente.")
+
+    st.divider()
+
+    # ── Sliders (com key vinculado ao session_state) ────────────────────────
     st.markdown("#### 🎚️ Ajuste Manual das Variáveis")
 
     col_sl1, col_sl2 = st.columns(2)
@@ -570,19 +630,19 @@ with tab_simulador:
         cambio = st.slider(
             "💵 Câmbio USD/BRL (R$/US$)",
             min_value=3.5, max_value=9.0, step=0.05,
-            value=float(st.session_state.get("sim_cambio", VARIAVEIS_BASE["cambio_usd_brl"])),
+            key="sim_cambio",
             format="R$ %.2f",
         )
         petroleo = st.slider(
             "🛢️ Petróleo Brent (US$/barril)",
             min_value=40.0, max_value=200.0, step=1.0,
-            value=float(st.session_state.get("sim_petro", VARIAVEIS_BASE["petroleo_brent_usd"])),
+            key="sim_petro",
             format="US$ %.0f",
         )
         fertilizantes = st.slider(
             "🧪 Índice de Fertilizantes (base 100)",
             min_value=80.0, max_value=350.0, step=5.0,
-            value=float(st.session_state.get("sim_fertil", VARIAVEIS_BASE["indice_fertilizantes"])),
+            key="sim_fertil",
             format="%.0f pts",
         )
 
@@ -590,13 +650,13 @@ with tab_simulador:
         selic = st.slider(
             "🏦 Taxa Selic (% a.a.)",
             min_value=5.0, max_value=20.0, step=0.25,
-            value=float(st.session_state.get("sim_selic", VARIAVEIS_BASE["selic_pct"])),
+            key="sim_selic",
             format="%.2f%%",
         )
         risco_geop = st.slider(
             "🌍 Índice de Risco Geopolítico (0–100)",
             min_value=0.0, max_value=100.0, step=1.0,
-            value=float(st.session_state.get("sim_geop", VARIAVEIS_BASE["risco_geopolitico"])),
+            key="sim_geop",
             format="%.0f",
         )
 

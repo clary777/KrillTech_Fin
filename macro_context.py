@@ -264,3 +264,96 @@ def cenario_choque_petroleo(multiplicador_petroleo: float = 1.65) -> dict:
     )
 
     return resultado
+
+
+# ---------------------------------------------------------------------------
+# BUSCA DE DADOS REAIS VIA GEMINI (Google AI)
+# ---------------------------------------------------------------------------
+
+import requests
+import json
+import re
+
+GEMINI_API_KEY = "AQ.Ab8RN6KkdQRlZzCOJT5aqvNBIN3NHw3ivd7RNlID912CVzcvVw"
+GEMINI_MODEL = "gemini-3.5-flash-lite"
+
+
+def buscar_variaveis_com_gemini() -> dict:
+    """
+    Usa a API do Google Gemini (com Grounding via Google Search) para buscar
+    os valores atuais das variáveis macroeconômicas.
+
+    Retorna:
+        dict com as variáveis atualizadas e metadados da busca, ou None em caso de erro.
+    """
+    prompt = (
+        "Busque os valores ATUAIS e mais recentes das seguintes variáveis "
+        "macroeconômicas. Retorne APENAS um JSON válido, sem markdown, sem "
+        "explicação, sem texto antes ou depois. O JSON deve ter exatamente "
+        "estas chaves:\n"
+        "{\n"
+        '  "cambio_usd_brl": <número decimal, cotação atual do dólar em reais>,\n'
+        '  "petroleo_brent_usd": <número decimal, preço do barril de petróleo Brent em USD>,\n'
+        '  "selic_pct": <número decimal, taxa Selic meta atual em % a.a.>,\n'
+        '  "indice_fertilizantes": <número inteiro, índice de preço de fertilizantes base 100=média 2018-2022, estimar com base no preço atual da ureia>,\n'
+        '  "risco_geopolitico": <número inteiro de 0 a 100, estimativa do nível de risco geopolítico global atual>,\n'
+        '  "fonte": "<breve descrição das fontes consultadas>",\n'
+        '  "data_consulta": "<data de hoje no formato YYYY-MM-DD>"\n'
+        "}\n"
+    )
+
+    url = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+    )
+
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "tools": [{"google_search": {}}],
+        "generationConfig": {
+            "temperature": 0.1,
+            "maxOutputTokens": 1024,
+        },
+    }
+
+    try:
+        resp = requests.post(url, json=payload, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+
+        # Extrair texto da resposta
+        texto = ""
+        candidates = data.get("candidates", [])
+        if candidates:
+            parts = candidates[0].get("content", {}).get("parts", [])
+            for part in parts:
+                if "text" in part:
+                    texto += part["text"]
+
+        if not texto.strip():
+            return None
+
+        # Limpar possíveis backticks de markdown
+        texto_limpo = texto.strip()
+        texto_limpo = re.sub(r"^```(?:json)?\s*", "", texto_limpo)
+        texto_limpo = re.sub(r"\s*```$", "", texto_limpo)
+
+        resultado = json.loads(texto_limpo)
+
+        # Validar que as chaves essenciais existem e são numéricas
+        chaves_obrigatorias = [
+            "cambio_usd_brl",
+            "petroleo_brent_usd",
+            "selic_pct",
+            "indice_fertilizantes",
+            "risco_geopolitico",
+        ]
+        for chave in chaves_obrigatorias:
+            if chave not in resultado:
+                return None
+            resultado[chave] = float(resultado[chave])
+
+        return resultado
+
+    except Exception as e:
+        return {"erro": str(e)}
