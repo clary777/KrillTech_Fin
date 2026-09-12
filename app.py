@@ -18,7 +18,6 @@ from agro_risk import calcular_score_agro
 from macro_context import (
     calcular_fator_estresse_macro,
     cenario_choque_petroleo,
-    buscar_variaveis_com_gemini,
     VARIAVEIS_BASE,
     PARAMETROS_MACRO,
     LIMIAR_ALERTA_ESTRESSE,
@@ -595,45 +594,6 @@ with tab_simulador:
         st.button("🟠 Selic Alta (16%)", use_container_width=True, on_click=_preset_selic)
     with pc4:
         st.button("🟡 Câmbio Estressado (R$7,20)", use_container_width=True, on_click=_preset_cambio)
-
-    st.divider()
-
-    # ── Busca de Dados Reais com IA ─────────────────────────────────────────
-    st.markdown("#### 🤖 Dados Reais via IA (Gemini)")
-    col_ia_btn, col_ia_info = st.columns([1, 3])
-
-    with col_ia_btn:
-        buscar_ia = st.button("🔍 Buscar Dados Atuais", use_container_width=True)
-
-    with col_ia_info:
-        st.caption(
-            "Usa o Google Gemini com busca na web para obter os valores "
-            "macroeconômicos mais recentes e preencher os sliders automaticamente."
-        )
-
-    if buscar_ia:
-        with st.spinner("🌐 Consultando Gemini + Google Search..."):
-            resultado_ia = buscar_variaveis_com_gemini()
-
-        if resultado_ia and "erro" not in resultado_ia:
-            st.session_state["sim_cambio"]  = resultado_ia["cambio_usd_brl"]
-            st.session_state["sim_petro"]   = resultado_ia["petroleo_brent_usd"]
-            st.session_state["sim_fertil"]  = resultado_ia["indice_fertilizantes"]
-            st.session_state["sim_selic"]   = resultado_ia["selic_pct"]
-            st.session_state["sim_geop"]    = resultado_ia["risco_geopolitico"]
-
-            fonte = resultado_ia.get("fonte", "Google Search via Gemini")
-            data_c = resultado_ia.get("data_consulta", "—")
-
-            st.success(
-                f"✅ Variáveis atualizadas com sucesso! "
-                f"Fonte: {fonte} | Data: {data_c}"
-            )
-            st.rerun()
-        elif resultado_ia and "erro" in resultado_ia:
-            st.error(f"❌ Erro na consulta: {resultado_ia['erro']}")
-        else:
-            st.warning("⚠️ Não foi possível obter os dados. Tente novamente.")
 
     st.divider()
 
