@@ -33,124 +33,133 @@ st.set_page_config(
 # ─── CSS Customizado ─────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* Fonte e fundo */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Tipografia: IBM Plex Serif (títulos) + IBM Plex Sans (corpo) —
+   referência sutil ao ecossistema IBM watsonx citado no desafio. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
 }
 
-/* Fundo escuro */
+/* Fundo: pergaminho quente — remete a papel de relatório, não a um
+   dashboard SaaS genérico. */
 .stApp {
-    background: linear-gradient(135deg, #0a0f1e 0%, #0d1b2a 50%, #0a1628 100%);
-    color: #e8eaf0;
+    background: linear-gradient(180deg, #FAF8F2 0%, #F5F2E9 100%);
+    color: #1E2A24;
 }
 
-/* Sidebar */
+/* Sidebar: tom de capa de dossiê, separado por uma régua fina */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0d1b2a 0%, #111e30 100%);
-    border-right: 1px solid #1e3a5f;
+    background: #EFE9D8;
+    border-right: 1px solid #C9BFA0;
+}
+[data-testid="stSidebar"] * {
+    color: #1E2A24 !important;
 }
 
-/* Cards de métricas */
+/* Cards de métricas: régua fina + acento verde à esquerda,
+   sem sombra pesada de cartão SaaS */
 [data-testid="stMetric"] {
-    background: rgba(30, 58, 95, 0.4);
-    border: 1px solid rgba(100, 160, 255, 0.2);
-    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid #E1DAC5;
+    border-left: 3px solid #2F5233;
+    border-radius: 8px;
     padding: 16px;
-    backdrop-filter: blur(10px);
 }
 
-/* Títulos */
+/* Títulos em serifada, cor verde-safra */
 h1, h2, h3 {
-    color: #64b5f6 !important;
+    font-family: 'IBM Plex Serif', serif;
+    color: #2F5233 !important;
     font-weight: 600;
 }
 
-/* Botão primário */
+/* Botão primário: verde-safra sólido, sem brilho neon */
 .stButton > button {
-    background: linear-gradient(135deg, #1565c0, #0d47a1);
-    color: white;
-    border: none;
-    border-radius: 8px;
+    background: #2F5233;
+    color: #FAF8F2;
+    border: 1px solid #223D26;
+    border-radius: 6px;
     font-weight: 600;
     font-size: 16px;
     padding: 12px 28px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
+    transition: background 0.2s ease;
     width: 100%;
 }
 .stButton > button:hover {
-    background: linear-gradient(135deg, #1976d2, #1565c0);
-    box-shadow: 0 6px 20px rgba(21, 101, 192, 0.6);
-    transform: translateY(-1px);
+    background: #223D26;
+    border-color: #1a2e1c;
 }
 
 /* Score badge customizado */
 .score-badge {
     display: inline-block;
     padding: 8px 20px;
-    border-radius: 50px;
+    border-radius: 8px;
     font-size: 24px;
     font-weight: 700;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
-/* Red flag card */
+/* Red flag card — tons terrosos por severidade */
 .flag-critico {
-    background: rgba(255, 68, 68, 0.15);
-    border-left: 4px solid #ff4444;
-    border-radius: 8px;
+    background: rgba(166, 50, 27, 0.08);
+    border-left: 4px solid #A6321B;
+    border-radius: 6px;
     padding: 12px 16px;
     margin: 8px 0;
+    color: #1E2A24;
 }
 .flag-alto {
-    background: rgba(255, 136, 0, 0.15);
-    border-left: 4px solid #ff8800;
-    border-radius: 8px;
+    background: rgba(168, 85, 31, 0.08);
+    border-left: 4px solid #A8551F;
+    border-radius: 6px;
     padding: 12px 16px;
     margin: 8px 0;
+    color: #1E2A24;
 }
 .flag-medio {
-    background: rgba(255, 187, 51, 0.15);
-    border-left: 4px solid #ffbb33;
-    border-radius: 8px;
+    background: rgba(138, 106, 20, 0.08);
+    border-left: 4px solid #8A6A14;
+    border-radius: 6px;
     padding: 12px 16px;
     margin: 8px 0;
+    color: #1E2A24;
 }
 
 /* Separador */
 hr {
     border: none;
-    border-top: 1px solid rgba(100, 160, 255, 0.2);
+    border-top: 1px solid #D9D2C0;
     margin: 24px 0;
 }
 
 /* Tabs */
 .stTabs [data-baseweb="tab-list"] {
     gap: 8px;
-    background: rgba(13, 27, 42, 0.8);
-    border-radius: 10px;
+    background: #EFE9D8;
+    border-radius: 8px;
     padding: 4px;
 }
 .stTabs [data-baseweb="tab"] {
-    border-radius: 8px;
-    color: #90caf9;
+    border-radius: 6px;
+    color: #5B6B5E;
     font-weight: 500;
 }
 .stTabs [aria-selected="true"] {
-    background: rgba(21, 101, 192, 0.5) !important;
-    color: white !important;
+    background: rgba(47, 82, 51, 0.15) !important;
+    color: #2F5233 !important;
 }
 
 /* Info boxes */
 .info-card {
-    background: rgba(21, 101, 192, 0.1);
-    border: 1px solid rgba(100, 160, 255, 0.25);
-    border-radius: 10px;
+    background: #FFFFFF;
+    border: 1px solid #E1DAC5;
+    border-left: 3px solid #2F5233;
+    border-radius: 8px;
     padding: 16px;
     margin: 8px 0;
+    color: #1E2A24;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -356,17 +365,17 @@ with tab_relatorio:
                     radialaxis=dict(
                         visible=True,
                         range=[0, 100],
-                        tickfont=dict(color="#aaa", size=10),
-                        gridcolor="rgba(255,255,255,0.1)",
+                        tickfont=dict(color="#5B6B5E", size=10),
+                        gridcolor="rgba(30,42,36,0.12)",
                     ),
                     angularaxis=dict(
-                        tickfont=dict(color="#ddd", size=11),
-                        gridcolor="rgba(255,255,255,0.1)",
+                        tickfont=dict(color="#1E2A24", size=11),
+                        gridcolor="rgba(30,42,36,0.12)",
                     ),
                 ),
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ddd"),
+                font=dict(color="#1E2A24"),
                 margin=dict(l=20, r=20, t=20, b=20),
                 showlegend=False,
                 height=280,
@@ -384,28 +393,28 @@ with tab_relatorio:
                     "prefix": "vs idio: ",
                 },
                 gauge={
-                    "axis": {"range": [0, 1000], "tickcolor": "#aaa"},
+                    "axis": {"range": [0, 1000], "tickcolor": "#5B6B5E"},
                     "bar": {"color": cor, "thickness": 0.25},
                     "bgcolor": "rgba(0,0,0,0)",
-                    "bordercolor": "rgba(255,255,255,0.1)",
+                    "bordercolor": "rgba(30,42,36,0.15)",
                     "steps": [
-                        {"range": [0,   400], "color": "rgba(255,68,68,0.15)"},
-                        {"range": [400, 600], "color": "rgba(255,136,0,0.15)"},
-                        {"range": [600, 800], "color": "rgba(255,187,51,0.15)"},
-                        {"range": [800,1000], "color": "rgba(0,200,81,0.15)"},
+                        {"range": [0,   400], "color": "rgba(166,50,27,0.12)"},
+                        {"range": [400, 600], "color": "rgba(168,85,31,0.12)"},
+                        {"range": [600, 800], "color": "rgba(138,106,20,0.12)"},
+                        {"range": [800,1000], "color": "rgba(47,82,51,0.12)"},
                     ],
                     "threshold": {
-                        "line": {"color": "white", "width": 3},
+                        "line": {"color": "#1E2A24", "width": 3},
                         "thickness": 0.75,
                         "value": score_idio,
                     },
                 },
                 number={"font": {"color": cor, "size": 40}},
-                title={"text": f"Rating {rating}", "font": {"color": "#ddd", "size": 14}},
+                title={"text": f"Rating {rating}", "font": {"color": "#1E2A24", "size": 14}},
             ))
             fig_gauge.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ddd"),
+                font=dict(color="#1E2A24"),
                 height=280,
                 margin=dict(l=20, r=20, t=40, b=20),
             )
@@ -417,36 +426,36 @@ with tab_relatorio:
             fig_bar.add_trace(go.Bar(
                 x=["Score\nIdiossincrático", "Score\nAjustado (macro)"],
                 y=[score_idio, score_adj],
-                marker_color=["#42a5f5", cor],
+                marker_color=["#1B2A41", cor],
                 text=[f"{score_idio:.0f}", f"{score_adj:.0f}"],
                 textposition="outside",
-                textfont=dict(color="white", size=16, family="Inter"),
+                textfont=dict(color="#1E2A24", size=16, family="IBM Plex Sans"),
                 width=0.5,
             ))
             # Linha de referência: limite de faixa
             fig_bar.add_hline(
-                y=800, line_dash="dot", line_color="#00C851",
-                annotation_text="A ≥ 800", annotation_font_color="#00C851",
+                y=800, line_dash="dot", line_color="#2F5233",
+                annotation_text="A ≥ 800", annotation_font_color="#2F5233",
             )
             fig_bar.add_hline(
-                y=600, line_dash="dot", line_color="#FFBB33",
-                annotation_text="B ≥ 600", annotation_font_color="#FFBB33",
+                y=600, line_dash="dot", line_color="#8A6A14",
+                annotation_text="B ≥ 600", annotation_font_color="#8A6A14",
             )
             fig_bar.add_hline(
-                y=400, line_dash="dot", line_color="#FF8800",
-                annotation_text="C ≥ 400", annotation_font_color="#FF8800",
+                y=400, line_dash="dot", line_color="#A8551F",
+                annotation_text="C ≥ 400", annotation_font_color="#A8551F",
             )
             fig_bar.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
                 yaxis=dict(
                     range=[0, 1100],
-                    gridcolor="rgba(255,255,255,0.08)",
-                    tickcolor="#aaa",
-                    tickfont=dict(color="#aaa"),
+                    gridcolor="rgba(30,42,36,0.10)",
+                    tickcolor="#5B6B5E",
+                    tickfont=dict(color="#5B6B5E"),
                 ),
-                xaxis=dict(tickfont=dict(color="#ddd", size=12)),
-                font=dict(color="#ddd"),
+                xaxis=dict(tickfont=dict(color="#1E2A24", size=12)),
+                font=dict(color="#1E2A24"),
                 height=280,
                 margin=dict(l=10, r=10, t=20, b=10),
                 showlegend=False,
@@ -690,16 +699,16 @@ with tab_simulador:
             y="Variável",
             orientation="h",
             color="Contribuição",
-            color_continuous_scale=["#00C851", "#FFBB33", "#FF4444"],
+            color_continuous_scale=["#2F5233", "#8A6A14", "#A6321B"],
             range_color=[0, 0.30],
             text=df_contrib["Estresse (norm.)"].map(lambda x: f"{x:.0%}"),
         )
         fig_contrib.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#ddd"),
+            font=dict(color="#1E2A24"),
             coloraxis_showscale=False,
-            xaxis=dict(gridcolor="rgba(255,255,255,0.08)", tickformat=".3f"),
+            xaxis=dict(gridcolor="rgba(30,42,36,0.10)", tickformat=".3f"),
             yaxis=dict(tickfont=dict(size=12)),
             margin=dict(l=0, r=10, t=10, b=10),
             height=280,
@@ -731,19 +740,19 @@ with tab_simulador:
                 f"{score_sim:.0f}",
             ],
             textposition="outside",
-            connector={"line": {"color": "rgba(255,255,255,0.2)"}},
-            increasing={"marker": {"color": "#00C851"}},
-            decreasing={"marker": {"color": "#FF4444"}},
+            connector={"line": {"color": "rgba(30,42,36,0.25)"}},
+            increasing={"marker": {"color": "#2F5233"}},
+            decreasing={"marker": {"color": "#A6321B"}},
             totals={"marker": {"color": cor_sim}},
         ))
         fig_wf.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#ddd"),
+            font=dict(color="#1E2A24"),
             yaxis=dict(
                 range=[0, 1100],
-                gridcolor="rgba(255,255,255,0.08)",
-                tickcolor="#aaa",
+                gridcolor="rgba(30,42,36,0.10)",
+                tickcolor="#5B6B5E",
             ),
             xaxis=dict(tickfont=dict(size=11)),
             margin=dict(l=10, r=10, t=10, b=10),
@@ -780,22 +789,22 @@ with tab_simulador:
 
     def colorir_delta(val):
         if val < -30:
-            return "color: #ff4444; font-weight:600"
+            return "color: #A6321B; font-weight:600"
         elif val < 0:
-            return "color: #ff8800"
+            return "color: #A8551F"
         elif val > 0:
-            return "color: #00C851"
-        return "color: #aaa"
+            return "color: #2F5233"
+        return "color: #5B6B5E"
 
     def colorir_rating(val):
-        cores = {"A": "#00C851", "B": "#FFBB33", "C": "#FF8800", "D": "#FF4444"}
-        c = cores.get(val, "#aaa")
+        cores = {"A": "#2F5233", "B": "#8A6A14", "C": "#A8551F", "D": "#A6321B"}
+        c = cores.get(val, "#5B6B5E")
         return f"color: {c}; font-weight:700"
 
     styled_df = (
         df_comp.style
-        .applymap(colorir_delta, subset=["Δ Score"])
-        .applymap(colorir_rating, subset=["Rating Base", "Rating Sim."])
+        .map(colorir_delta, subset=["Δ Score"])
+        .map(colorir_rating, subset=["Rating Base", "Rating Sim."])
         .format({
             "Score Base": "{:.0f}",
             "Score Simulado": "{:.0f}",
