@@ -276,7 +276,7 @@ import re
 
 import os
 
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-2.5-flash-lite"
 
 def obter_gemini_api_key(api_key_fornecida: str = None) -> str:
     """Obtém a chave da API do Gemini via parâmetro, os.environ ou st.secrets."""
