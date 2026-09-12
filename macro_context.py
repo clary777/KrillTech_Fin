@@ -274,8 +274,10 @@ import requests
 import json
 import re
 
+import os
+
 GEMINI_MODEL = "gemini-3.5-flash-lite"
-GEMINI_API_KEY = "AQ.Ab8RN6Ja6g5Rb0MGW26UG2zO9yEP70it0f0buKMaJphxgRsMeA"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 
 def buscar_variaveis_com_gemini(api_key: str = None) -> dict:

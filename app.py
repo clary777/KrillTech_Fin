@@ -4,6 +4,9 @@ app.py — Interface Streamlit — KrillTech Fin: Sistema de Risco de Crédito A
 Execute com:  streamlit run app.py
 """
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -38,48 +41,74 @@ st.markdown("""
    referência sutil ao ecossistema IBM watsonx citado no desafio. */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap');
 
+/* Forçar tema claro uniforme independente do tema selecionado no Streamlit (dark/light) */
+:root, [data-theme="dark"], [data-theme="light"], body, .stApp {
+    --text-color: #1E2A24 !important;
+    --background-color: #FAF8F2 !important;
+    --secondary-background-color: #EFE9D8 !important;
+    --primary-color: #2F5233 !important;
+    background-color: #FAF8F2 !important;
+    background: linear-gradient(180deg, #FAF8F2 0%, #F5F2E9 100%) !important;
+    color: #1E2A24 !important;
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
 html, body, [class*="css"] {
     font-family: 'IBM Plex Sans', sans-serif;
 }
 
-/* Fundo: pergaminho quente — remete a papel de relatório, não a um
-   dashboard SaaS genérico. */
-.stApp {
-    background: linear-gradient(180deg, #FAF8F2 0%, #F5F2E9 100%);
-    color: #1E2A24;
+/* Forçar a cor do texto escuro para todos os componentes principais */
+.stApp p, .stApp span, .stApp label, .stApp div,
+.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+.stApp li, .stApp td, .stApp th, .stApp input, .stApp textarea,
+[data-testid="stMarkdownContainer"] *,
+[data-testid="stMetricValue"] *,
+[data-testid="stMetricLabel"] *,
+[data-testid="stMetricDelta"] *,
+[data-testid="stCaptionContainer"] *,
+[data-testid="stExpander"] *,
+[data-baseweb="select"] *,
+[data-baseweb="popover"] *,
+[data-baseweb="menu"] *,
+[data-baseweb="option"] *,
+[data-testid="stWidgetLabel"] *,
+.stSelectbox *, .stMultiSelect *, .stSlider * {
+    color: #1E2A24 !important;
 }
 
 /* Sidebar: tom de capa de dossiê, separado por uma régua fina */
 [data-testid="stSidebar"] {
-    background: #EFE9D8;
-    border-right: 1px solid #C9BFA0;
+    background: #EFE9D8 !important;
+    border-right: 1px solid #C9BFA0 !important;
 }
 [data-testid="stSidebar"] * {
     color: #1E2A24 !important;
 }
 
-/* Cards de métricas: régua fina + acento verde à esquerda,
-   sem sombra pesada de cartão SaaS */
+/* Cards de métricas: régua fina + acento verde à esquerda */
 [data-testid="stMetric"] {
-    background: #FFFFFF;
-    border: 1px solid #E1DAC5;
-    border-left: 3px solid #2F5233;
+    background: #FFFFFF !important;
+    border: 1px solid #E1DAC5 !important;
+    border-left: 3px solid #2F5233 !important;
     border-radius: 8px;
     padding: 16px;
+}
+[data-testid="stMetric"] * {
+    color: #1E2A24 !important;
 }
 
 /* Títulos em serifada, cor verde-safra */
 h1, h2, h3 {
-    font-family: 'IBM Plex Serif', serif;
+    font-family: 'IBM Plex Serif', serif !important;
     color: #2F5233 !important;
-    font-weight: 600;
+    font-weight: 600 !important;
 }
 
-/* Botão primário: verde-safra sólido, sem brilho neon */
-.stButton > button {
-    background: #2F5233;
-    color: #FAF8F2;
-    border: 1px solid #223D26;
+/* Botão primário: verde-safra sólido, texto pergaminho */
+.stButton > button, .stButton > button * {
+    background: #2F5233 !important;
+    color: #FAF8F2 !important;
+    border: 1px solid #223D26 !important;
     border-radius: 6px;
     font-weight: 600;
     font-size: 16px;
@@ -88,8 +117,8 @@ h1, h2, h3 {
     width: 100%;
 }
 .stButton > button:hover {
-    background: #223D26;
-    border-color: #1a2e1c;
+    background: #223D26 !important;
+    border-color: #1a2e1c !important;
 }
 
 /* Score badge customizado */
@@ -103,29 +132,29 @@ h1, h2, h3 {
 }
 
 /* Red flag card — tons terrosos por severidade */
-.flag-critico {
+.flag-critico, .flag-critico * {
     background: rgba(166, 50, 27, 0.08);
     border-left: 4px solid #A6321B;
     border-radius: 6px;
     padding: 12px 16px;
     margin: 8px 0;
-    color: #1E2A24;
+    color: #1E2A24 !important;
 }
-.flag-alto {
+.flag-alto, .flag-alto * {
     background: rgba(168, 85, 31, 0.08);
     border-left: 4px solid #A8551F;
     border-radius: 6px;
     padding: 12px 16px;
     margin: 8px 0;
-    color: #1E2A24;
+    color: #1E2A24 !important;
 }
-.flag-medio {
+.flag-medio, .flag-medio * {
     background: rgba(138, 106, 20, 0.08);
     border-left: 4px solid #8A6A14;
     border-radius: 6px;
     padding: 12px 16px;
     margin: 8px 0;
-    color: #1E2A24;
+    color: #1E2A24 !important;
 }
 
 /* Separador */
@@ -138,29 +167,37 @@ hr {
 /* Tabs */
 .stTabs [data-baseweb="tab-list"] {
     gap: 8px;
-    background: #EFE9D8;
+    background: #EFE9D8 !important;
     border-radius: 8px;
     padding: 4px;
 }
 .stTabs [data-baseweb="tab"] {
     border-radius: 6px;
-    color: #5B6B5E;
+    color: #5B6B5E !important;
     font-weight: 500;
 }
 .stTabs [aria-selected="true"] {
     background: rgba(47, 82, 51, 0.15) !important;
     color: #2F5233 !important;
 }
+.stTabs [aria-selected="true"] * {
+    color: #2F5233 !important;
+}
+
+/* Selectbox e Popovers / Dropdowns */
+[data-baseweb="select"] > div, [data-baseweb="popover"], [data-baseweb="menu"] {
+    background-color: #FFFFFF !important;
+}
 
 /* Info boxes */
-.info-card {
+.info-card, .info-card * {
     background: #FFFFFF;
     border: 1px solid #E1DAC5;
     border-left: 3px solid #2F5233;
     border-radius: 8px;
     padding: 16px;
     margin: 8px 0;
-    color: #1E2A24;
+    color: #1E2A24 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -292,13 +329,13 @@ with tab_relatorio:
         <div style="text-align:center; margin: 16px 0 24px 0;">
             <div style="display:inline-block; background:{cor}22; border:2px solid {cor};
                         border-radius:16px; padding:20px 48px;">
-                <div style="font-size:14px; color:#aaa; font-weight:500; margin-bottom:4px;">
+                <div style="font-size:14px; color:#4B5563; font-weight:600; margin-bottom:4px;">
                     RATING FINAL
                 </div>
                 <div style="font-size:56px; font-weight:800; color:{cor}; line-height:1;">
                     {rating}
                 </div>
-                <div style="font-size:13px; color:#ccc; margin-top:4px;">
+                <div style="font-size:13px; color:#4B5563; margin-top:4px;">
                     {resultado_scoring['descricao_rating']}
                 </div>
             </div>
