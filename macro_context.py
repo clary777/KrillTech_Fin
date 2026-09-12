@@ -276,8 +276,21 @@ import re
 
 import os
 
-GEMINI_MODEL = "gemini-3.5-flash-lite"
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = "gemini-1.5-flash"
+
+def obter_gemini_api_key(api_key_fornecida: str = None) -> str:
+    """Obtém a chave da API do Gemini via parâmetro, os.environ ou st.secrets."""
+    if api_key_fornecida and api_key_fornecida.strip():
+        return api_key_fornecida.strip()
+    
+    key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not key:
+        try:
+            import streamlit as st
+            key = st.secrets.get("GEMINI_API_KEY", "").strip()
+        except Exception:
+            pass
+    return key
 
 
 def buscar_variaveis_com_gemini(api_key: str = None) -> dict:
@@ -289,12 +302,11 @@ def buscar_variaveis_com_gemini(api_key: str = None) -> dict:
         api_key (str): Chave da API do Google AI Studio (formato AIza...).
 
     Retorna:
-        dict com as variáveis atualizadas e metadados da busca, ou None em caso de erro.
+        dict com as variáveis atualizadas e metadados da busca, ou dict com 'erro'.
     """
-    if not api_key:
-        api_key = GEMINI_API_KEY
-    if not api_key or not api_key.strip():
-        return {"erro": "Chave de API não configurada."}
+    key = obter_gemini_api_key(api_key)
+    if not key:
+        return {"erro": "Chave de API não configurada. Insira uma chave válida do Google AI Studio (aistudio.google.com/apikey) ou configure o Secret GEMINI_API_KEY."}
 
     prompt = (
         "Busque os valores ATUAIS e mais recentes das seguintes variáveis "
@@ -314,7 +326,7 @@ def buscar_variaveis_com_gemini(api_key: str = None) -> dict:
 
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{GEMINI_MODEL}:generateContent?key={api_key}"
+        f"{GEMINI_MODEL}:generateContent?key={key}"
     )
 
     payload = {
@@ -341,7 +353,7 @@ def buscar_variaveis_com_gemini(api_key: str = None) -> dict:
                     texto += part["text"]
 
         if not texto.strip():
-            return None
+            return {"erro": "O modelo Gemini retornou uma resposta vazia."}
 
         # Limpar possíveis backticks de markdown
         texto_limpo = texto.strip()
@@ -360,7 +372,7 @@ def buscar_variaveis_com_gemini(api_key: str = None) -> dict:
         ]
         for chave in chaves_obrigatorias:
             if chave not in resultado:
-                return None
+                return {"erro": f"Chave obrigatória ausente na resposta: {chave}"}
             resultado[chave] = float(resultado[chave])
 
         return resultado
@@ -368,12 +380,14 @@ def buscar_variaveis_com_gemini(api_key: str = None) -> dict:
     except Exception as e:
         msg = str(e)
         # Não vazar a chave na mensagem de erro
-        if api_key and len(api_key) > 8:
-            msg = msg.replace(api_key, "***")
+        if key and len(key) > 8:
+            msg = msg.replace(key, "***")
         if "401" in msg or "Unauthorized" in msg:
-            msg = "Chave de API inválida ou expirada. Gere uma nova em aistudio.google.com/apikey"
+            msg = "Chave de API inválida ou expirada. Gere uma nova chave gratuita em aistudio.google.com/apikey"
+        elif "429" in msg or "Too Many Requests" in msg:
+            msg = "Limite de requisições excedido (Rate Limit temporário do plano gratuito). Aguarde 15 a 30 segundos e tente novamente."
         elif "403" in msg or "Forbidden" in msg:
-            msg = "Acesso negado. Verifique se a chave tem permissão para o modelo Gemini."
+            msg = "Acesso negado. Verifique se a chave de API tem permissão para o modelo Gemini 1.5 Flash."
         elif "404" in msg:
-            msg = "Modelo não encontrado. Verifique o nome do modelo Gemini."
+            msg = f"Modelo {GEMINI_MODEL} não encontrado na API do Gemini."
         return {"erro": msg}
