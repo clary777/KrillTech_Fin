@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
-from mock_data import CLIENTES, LISTA_CLIENTES
+from mock_data import CLIENTES, LISTA_CLIENTES, OPEN_FINANCE
 from collector import coletar_dados_cliente, resumo_cadastral
 from agro_risk import calcular_score_agro
 from macro_context import (
@@ -198,9 +198,10 @@ with st.sidebar:
     st.caption("MVP — Dados simulados para demonstração")
 
 # ─── Tabs Principais ─────────────────────────────────────────────────────────
-tab_relatorio, tab_simulador = st.tabs([
+tab_relatorio, tab_simulador, tab_openfinance = st.tabs([
     "📋 Relatório de Risco",
     "🎛️ Simulador de Cenário Macro",
+    "🏦 Open Finance",
 ])
 
 
@@ -873,3 +874,258 @@ with tab_simulador:
     )
 
     st.dataframe(styled_df, use_container_width=True, hide_index=True)
+
+# ===========================================================================
+# TAB 3: OPEN FINANCE
+# ===========================================================================
+with tab_openfinance:
+    st.markdown("## 🏦 Open Finance — Indicadores Financeiros")
+    st.markdown(
+        "Dados obtidos via **Open Finance (Open Banking Brasil)** com consentimento "
+        "do cliente. Indicadores de saúde financeira e alerta precoce de inadimplência."
+    )
+
+    of_data = OPEN_FINANCE.get(cnpj_selecionado)
+
+    if not of_data:
+        st.info("ℹ️ Dados de Open Finance não disponíveis para este cliente.")
+    elif not of_data.get("consentimento_ativo"):
+        st.warning("⚠️ Consentimento de Open Finance não ativo para este cliente.")
+    else:
+        dados_preview_of = CLIENTES.get(cnpj_selecionado, {})
+        st.markdown(f"""
+        <div class="info-card">
+        🏢 <strong>{dados_preview_of.get('nome_fantasia', '')}</strong> &nbsp;|&nbsp;
+        🔗 Conectado a: {', '.join(of_data['instituicoes_conectadas'])} &nbsp;|&nbsp;
+        📊 {of_data['operacoes_credito_ativas']} operações de crédito ativas
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.divider()
+
+        # ── Alerta de Inadimplência ─────────────────────────────────────────
+        risco_inad = of_data["risco_inadimplencia"]
+        alerta = of_data["alerta_inadimplencia"]
+        meses_risco = of_data.get("meses_ate_risco_estimado")
+
+        if risco_inad == "CRÍTICO":
+            meses_txt = f"**{meses_risco} mês**" if meses_risco == 1 else f"**{meses_risco} meses**"
+            st.markdown(
+                f'<div class="flag-critico" style="font-size:16px; padding:20px;">'
+                f'🚨 <strong>ALERTA CRÍTICO DE INADIMPLÊNCIA</strong><br><br>'
+                f'Estimativa de tempo até inadimplência: {meses_txt}.<br>'
+                f'{of_data["observacao"]}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        elif risco_inad == "ELEVADO":
+            st.markdown(
+                f'<div class="flag-alto" style="font-size:15px; padding:18px;">'
+                f'⚠️ <strong>RISCO ELEVADO DE INADIMPLÊNCIA</strong><br><br>'
+                f'Estimativa: {meses_risco} meses até risco concreto.<br>'
+                f'{of_data["observacao"]}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        elif risco_inad == "MODERADO":
+            st.markdown(
+                f'<div class="flag-medio" style="font-size:14px; padding:16px;">'
+                f'🟡 <strong>RISCO MODERADO</strong> — {of_data["observacao"]}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        st.divider()
+
+        # ── KPIs principais ─────────────────────────────────────────────────
+        st.markdown("#### 📊 Indicadores de Saúde Financeira")
+        of1, of2, of3, of4, of5 = st.columns(5)
+
+        # Cor do comprometimento
+        comp_pct = of_data["comprometimento_renda_pct"]
+
+        of1.metric(
+            "Saldo em Conta",
+            f"R$ {of_data['saldo_conta_corrente_brl']:,.0f}",
+            f"{of_data['tendencia_saldo'].replace('_', ' ')}",
+            delta_color="normal" if of_data["tendencia_saldo"] == "crescente" else "inverse",
+        )
+        of2.metric(
+            "Comprometimento de Renda",
+            f"{comp_pct:.1f}%",
+            "saudável" if comp_pct < 35 else ("atenção" if comp_pct < 60 else "CRÍTICO"),
+            delta_color="off" if comp_pct < 35 else "inverse",
+        )
+        of3.metric(
+            "Utilização de Crédito",
+            f"{of_data['utilizacao_credito_pct']:.1f}%",
+            f"R$ {of_data['limite_utilizado_brl']:,.0f} / {of_data['limite_credito_total_brl']:,.0f}",
+            delta_color="off",
+        )
+        of4.metric(
+            "Cobertura de Dívida",
+            f"{of_data['indice_cobertura_divida']:.2f}×",
+            "adequado" if of_data["indice_cobertura_divida"] >= 1.5 else "insuficiente",
+            delta_color="off" if of_data["indice_cobertura_divida"] >= 1.5 else "inverse",
+        )
+        of5.metric(
+            "Pontualidade",
+            f"{of_data['score_pontualidade']}/100",
+            f"{of_data['parcelas_em_dia']} em dia",
+            delta_color="off",
+        )
+
+        st.divider()
+
+        # ── Detalhes de atrasos e fluxo ─────────────────────────────────────
+        col_atrasos, col_fluxo = st.columns(2)
+
+        with col_atrasos:
+            st.markdown("##### 🚦 Histórico de Parcelas")
+            total_parcelas = (
+                of_data["parcelas_em_dia"]
+                + of_data["parcelas_atrasadas_30d"]
+                + of_data["parcelas_atrasadas_60d"]
+                + of_data["parcelas_atrasadas_90d"]
+            )
+
+            atraso_data = pd.DataFrame({
+                "Status": ["Em dia", "Atraso 30d", "Atraso 60d", "Atraso 90d+"],
+                "Parcelas": [
+                    of_data["parcelas_em_dia"],
+                    of_data["parcelas_atrasadas_30d"],
+                    of_data["parcelas_atrasadas_60d"],
+                    of_data["parcelas_atrasadas_90d"],
+                ],
+            })
+
+            cores_atraso = ["#2F5233", "#8A6A14", "#A8551F", "#A6321B"]
+
+            fig_atraso = px.bar(
+                atraso_data,
+                x="Status",
+                y="Parcelas",
+                color="Status",
+                color_discrete_sequence=cores_atraso,
+                text="Parcelas",
+            )
+            fig_atraso.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#1E2A24"),
+                showlegend=False,
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=250,
+                yaxis=dict(gridcolor="rgba(30,42,36,0.10)"),
+            )
+            fig_atraso.update_traces(textposition="outside")
+            st.plotly_chart(fig_atraso, use_container_width=True)
+
+        with col_fluxo:
+            st.markdown("##### 💰 Fluxo de Caixa Mensal")
+            receita = of_data["receita_media_mensal_brl"]
+            despesa = of_data["despesa_media_mensal_brl"]
+            saldo_livre = receita - despesa
+
+            fluxo_data = pd.DataFrame({
+                "Tipo": ["Receita", "Despesa", "Saldo Livre"],
+                "Valor": [receita, despesa, saldo_livre],
+            })
+
+            cor_saldo = "#2F5233" if saldo_livre > 0 else "#A6321B"
+            cores_fluxo = ["#2F5233", "#A8551F", cor_saldo]
+
+            fig_fluxo = px.bar(
+                fluxo_data,
+                x="Tipo",
+                y="Valor",
+                color="Tipo",
+                color_discrete_sequence=cores_fluxo,
+                text=fluxo_data["Valor"].map(lambda x: f"R$ {x:,.0f}"),
+            )
+            fig_fluxo.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#1E2A24"),
+                showlegend=False,
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=250,
+                yaxis=dict(gridcolor="rgba(30,42,36,0.10)"),
+            )
+            fig_fluxo.update_traces(textposition="outside")
+            st.plotly_chart(fig_fluxo, use_container_width=True)
+
+        st.divider()
+
+        # ── Evolução do saldo (gráfico de tendência simulado) ───────────────
+        st.markdown("##### 📈 Tendência de Saldo — Últimos 6 Meses (simulado)")
+        saldo_atual = of_data["saldo_conta_corrente_brl"]
+        saldo_3m = of_data["saldo_3_meses_atras_brl"]
+
+        # Interpolar 6 pontos de saldo simulado
+        import random
+        random.seed(hash(cnpj_selecionado))
+        tendencia = of_data["tendencia_saldo"]
+        if tendencia in ("queda_acentuada", "colapso"):
+            base_6m = saldo_3m * 1.6
+            pontos = [base_6m]
+            for i in range(1, 6):
+                pontos.append(pontos[-1] * random.uniform(0.60, 0.85))
+            pontos[5] = saldo_atual
+        elif tendencia == "leve_queda":
+            base_6m = saldo_3m * 1.15
+            pontos = [base_6m]
+            for i in range(1, 6):
+                pontos.append(pontos[-1] * random.uniform(0.92, 1.02))
+            pontos[5] = saldo_atual
+        else:  # crescente ou estável
+            base_6m = saldo_atual * 0.7
+            pontos = [base_6m]
+            for i in range(1, 6):
+                pontos.append(pontos[-1] * random.uniform(1.02, 1.12))
+            pontos[5] = saldo_atual
+
+        meses_labels = ["6m atrás", "5m atrás", "4m atrás", "3m atrás", "2m atrás", "Atual"]
+        df_saldo = pd.DataFrame({"Mês": meses_labels, "Saldo (R$)": pontos})
+
+        cor_linha = "#2F5233" if tendencia == "crescente" else (
+            "#A6321B" if tendencia in ("queda_acentuada", "colapso") else "#8A6A14"
+        )
+
+        fig_saldo = px.line(
+            df_saldo, x="Mês", y="Saldo (R$)",
+            markers=True,
+            text=df_saldo["Saldo (R$)"].map(lambda x: f"R$ {x:,.0f}"),
+        )
+        fig_saldo.update_traces(
+            line_color=cor_linha, line_width=3,
+            textposition="top center",
+            marker=dict(size=8),
+        )
+        fig_saldo.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#1E2A24"),
+            margin=dict(l=10, r=10, t=30, b=10),
+            height=280,
+            yaxis=dict(gridcolor="rgba(30,42,36,0.10)"),
+            showlegend=False,
+        )
+        st.plotly_chart(fig_saldo, use_container_width=True)
+
+        st.divider()
+
+        # ── Resumo de ocorrências ────────────────────────────────────────────
+        st.markdown("##### 📋 Ocorrências nos Últimos 12 Meses")
+        oc1, oc2, oc3 = st.columns(3)
+        oc1.metric("Cheques Devolvidos", of_data["cheque_devolvido_12m"])
+        oc2.metric("Protestos", of_data["protestos_12m"])
+        oc3.metric("Instituições c/ Dívida", of_data["qtd_instituicoes_com_divida"])
+
+        # ── Rodapé ──────────────────────────────────────────────────────────
+        st.divider()
+        st.caption(
+            "MVP — Dados simulados para demonstração. Em produção, os dados seriam "
+            "obtidos via APIs do ecossistema Open Finance do Banco Central do Brasil, "
+            "com consentimento explícito do cliente (fase 4 — dados de operações de crédito)."
+        )

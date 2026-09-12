@@ -274,18 +274,26 @@ import requests
 import json
 import re
 
-GEMINI_API_KEY = "AQ.Ab8RN6KkdQRlZzCOJT5aqvNBIN3NHw3ivd7RNlID912CVzcvVw"
 GEMINI_MODEL = "gemini-3.5-flash-lite"
+GEMINI_API_KEY = "AQ.Ab8RN6Ja6g5Rb0MGW26UG2zO9yEP70it0f0buKMaJphxgRsMeA"
 
 
-def buscar_variaveis_com_gemini() -> dict:
+def buscar_variaveis_com_gemini(api_key: str = None) -> dict:
     """
     Usa a API do Google Gemini (com Grounding via Google Search) para buscar
     os valores atuais das variáveis macroeconômicas.
 
+    Parâmetros:
+        api_key (str): Chave da API do Google AI Studio (formato AIza...).
+
     Retorna:
         dict com as variáveis atualizadas e metadados da busca, ou None em caso de erro.
     """
+    if not api_key:
+        api_key = GEMINI_API_KEY
+    if not api_key or not api_key.strip():
+        return {"erro": "Chave de API não configurada."}
+
     prompt = (
         "Busque os valores ATUAIS e mais recentes das seguintes variáveis "
         "macroeconômicas. Retorne APENAS um JSON válido, sem markdown, sem "
@@ -304,7 +312,7 @@ def buscar_variaveis_com_gemini() -> dict:
 
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+        f"{GEMINI_MODEL}:generateContent?key={api_key}"
     )
 
     payload = {
@@ -356,4 +364,14 @@ def buscar_variaveis_com_gemini() -> dict:
         return resultado
 
     except Exception as e:
-        return {"erro": str(e)}
+        msg = str(e)
+        # Não vazar a chave na mensagem de erro
+        if api_key and len(api_key) > 8:
+            msg = msg.replace(api_key, "***")
+        if "401" in msg or "Unauthorized" in msg:
+            msg = "Chave de API inválida ou expirada. Gere uma nova em aistudio.google.com/apikey"
+        elif "403" in msg or "Forbidden" in msg:
+            msg = "Acesso negado. Verifique se a chave tem permissão para o modelo Gemini."
+        elif "404" in msg:
+            msg = "Modelo não encontrado. Verifique o nome do modelo Gemini."
+        return {"erro": msg}

@@ -215,3 +215,235 @@ LISTA_CLIENTES = [
 def get_cliente(cnpj: str) -> dict:
     """Retorna dados mockados do cliente pelo CNPJ."""
     return CLIENTES.get(cnpj, {})
+
+
+# ---------------------------------------------------------------------------
+# DADOS SIMULADOS — OPEN FINANCE (DEMONSTRAÇÃO)
+# ---------------------------------------------------------------------------
+# Simula dados que seriam obtidos via APIs de Open Finance (Open Banking Brasil)
+# do Banco Central, com consentimento do cliente. Inclui:
+#   - Saldos e movimentação de contas
+#   - Operações de crédito ativas
+#   - Histórico de pagamentos
+#   - Indicadores de saúde financeira
+#
+# MOCK — Em produção, substituir por chamadas às APIs do ecossistema Open Finance:
+#   - /accounts (saldos e extratos)
+#   - /credit-operations (operações de crédito)
+#   - /financings (financiamentos)
+#   - /invoice-financings (desconto de duplicatas)
+# ---------------------------------------------------------------------------
+
+OPEN_FINANCE = {
+    # ── Fazenda São Benedito — Rating A, saúde excelente ──────────────────
+    "12.345.678/0001-90": {
+        "consentimento_ativo": True,
+        "instituicoes_conectadas": ["Banco do Brasil", "Sicoob"],
+        "saldo_conta_corrente_brl": 2_840_000,
+        "saldo_3_meses_atras_brl": 2_120_000,
+        "tendencia_saldo": "crescente",
+        "receita_media_mensal_brl": 2_333_000,
+        "despesa_media_mensal_brl": 1_680_000,
+        "operacoes_credito_ativas": 2,
+        "valor_total_divida_brl": 4_200_000,
+        "parcelas_em_dia": 24,
+        "parcelas_atrasadas_30d": 0,
+        "parcelas_atrasadas_60d": 0,
+        "parcelas_atrasadas_90d": 0,
+        "limite_credito_total_brl": 8_000_000,
+        "limite_utilizado_brl": 4_200_000,
+        "utilizacao_credito_pct": 52.5,
+        "comprometimento_renda_pct": 18.2,
+        "indice_cobertura_divida": 3.12,  # receita / parcela mensal
+        "score_pontualidade": 98,  # 0–100
+        "qtd_instituicoes_com_divida": 1,
+        "cheque_devolvido_12m": 0,
+        "protestos_12m": 0,
+        "risco_inadimplencia": "BAIXO",
+        "alerta_inadimplencia": False,
+        "meses_ate_risco_estimado": None,
+        "observacao": "Fluxo de caixa sólido. Endividamento controlado.",
+    },
+
+    # ── AgroSul Cereais — Rating A, 1 flag (protesto) ────────────────────
+    "98.765.432/0001-11": {
+        "consentimento_ativo": True,
+        "instituicoes_conectadas": ["Banrisul", "Banco do Brasil", "Bradesco"],
+        "saldo_conta_corrente_brl": 5_400_000,
+        "saldo_3_meses_atras_brl": 6_100_000,
+        "tendencia_saldo": "leve_queda",
+        "receita_media_mensal_brl": 7_916_000,
+        "despesa_media_mensal_brl": 6_800_000,
+        "operacoes_credito_ativas": 5,
+        "valor_total_divida_brl": 18_500_000,
+        "parcelas_em_dia": 58,
+        "parcelas_atrasadas_30d": 1,
+        "parcelas_atrasadas_60d": 0,
+        "parcelas_atrasadas_90d": 0,
+        "limite_credito_total_brl": 32_000_000,
+        "limite_utilizado_brl": 18_500_000,
+        "utilizacao_credito_pct": 57.8,
+        "comprometimento_renda_pct": 24.1,
+        "indice_cobertura_divida": 2.48,
+        "score_pontualidade": 91,
+        "qtd_instituicoes_com_divida": 3,
+        "cheque_devolvido_12m": 0,
+        "protestos_12m": 1,
+        "risco_inadimplencia": "BAIXO",
+        "alerta_inadimplencia": False,
+        "meses_ate_risco_estimado": None,
+        "observacao": "Saldo em queda leve e 1 protesto registrado. Monitorar.",
+    },
+
+    # ── Cerrado Verde — Rating B, 2 flags ────────────────────────────────
+    "55.432.198/0001-33": {
+        "consentimento_ativo": True,
+        "instituicoes_conectadas": ["Banco do Brasil", "Sicredi"],
+        "saldo_conta_corrente_brl": 380_000,
+        "saldo_3_meses_atras_brl": 920_000,
+        "tendencia_saldo": "queda_acentuada",
+        "receita_media_mensal_brl": 1_166_000,
+        "despesa_media_mensal_brl": 1_090_000,
+        "operacoes_credito_ativas": 4,
+        "valor_total_divida_brl": 9_800_000,
+        "parcelas_em_dia": 18,
+        "parcelas_atrasadas_30d": 3,
+        "parcelas_atrasadas_60d": 1,
+        "parcelas_atrasadas_90d": 0,
+        "limite_credito_total_brl": 10_000_000,
+        "limite_utilizado_brl": 9_800_000,
+        "utilizacao_credito_pct": 98.0,
+        "comprometimento_renda_pct": 62.4,
+        "indice_cobertura_divida": 1.07,
+        "score_pontualidade": 64,
+        "qtd_instituicoes_com_divida": 2,
+        "cheque_devolvido_12m": 2,
+        "protestos_12m": 1,
+        "risco_inadimplencia": "ELEVADO",
+        "alerta_inadimplencia": True,
+        "meses_ate_risco_estimado": 4,
+        "observacao": "Saldo caiu 59% em 3 meses. Utilização de crédito em 98%. Capacidade de pagamento no limite.",
+    },
+
+    # ── NordAgro — Rating B, 1 flag ──────────────────────────────────────
+    "77.001.234/0001-55": {
+        "consentimento_ativo": True,
+        "instituicoes_conectadas": ["BNB", "Banco do Brasil"],
+        "saldo_conta_corrente_brl": 1_200_000,
+        "saldo_3_meses_atras_brl": 1_450_000,
+        "tendencia_saldo": "leve_queda",
+        "receita_media_mensal_brl": 3_416_000,
+        "despesa_media_mensal_brl": 2_950_000,
+        "operacoes_credito_ativas": 3,
+        "valor_total_divida_brl": 8_200_000,
+        "parcelas_em_dia": 32,
+        "parcelas_atrasadas_30d": 2,
+        "parcelas_atrasadas_60d": 0,
+        "parcelas_atrasadas_90d": 0,
+        "limite_credito_total_brl": 14_000_000,
+        "limite_utilizado_brl": 8_200_000,
+        "utilizacao_credito_pct": 58.6,
+        "comprometimento_renda_pct": 38.7,
+        "indice_cobertura_divida": 1.68,
+        "score_pontualidade": 78,
+        "qtd_instituicoes_com_divida": 2,
+        "cheque_devolvido_12m": 0,
+        "protestos_12m": 0,
+        "risco_inadimplencia": "MODERADO",
+        "alerta_inadimplencia": False,
+        "meses_ate_risco_estimado": 9,
+        "observacao": "Comprometimento de renda acima de 35%. Tendência de queda no saldo.",
+    },
+
+    # ── Pantanal P&G — Rating A, sem flags ───────────────────────────────
+    "33.987.654/0001-22": {
+        "consentimento_ativo": True,
+        "instituicoes_conectadas": ["Banco do Brasil", "Bradesco", "Itaú"],
+        "saldo_conta_corrente_brl": 4_600_000,
+        "saldo_3_meses_atras_brl": 3_900_000,
+        "tendencia_saldo": "crescente",
+        "receita_media_mensal_brl": 4_333_000,
+        "despesa_media_mensal_brl": 3_100_000,
+        "operacoes_credito_ativas": 3,
+        "valor_total_divida_brl": 10_400_000,
+        "parcelas_em_dia": 36,
+        "parcelas_atrasadas_30d": 0,
+        "parcelas_atrasadas_60d": 0,
+        "parcelas_atrasadas_90d": 0,
+        "limite_credito_total_brl": 22_000_000,
+        "limite_utilizado_brl": 10_400_000,
+        "utilizacao_credito_pct": 47.3,
+        "comprometimento_renda_pct": 21.5,
+        "indice_cobertura_divida": 2.84,
+        "score_pontualidade": 100,
+        "qtd_instituicoes_com_divida": 2,
+        "cheque_devolvido_12m": 0,
+        "protestos_12m": 0,
+        "risco_inadimplencia": "BAIXO",
+        "alerta_inadimplencia": False,
+        "meses_ate_risco_estimado": None,
+        "observacao": "Excelente saúde financeira. Pontualidade perfeita.",
+    },
+
+    # ── AmazonAgro — Rating D, 4 flags, PERTO DA INADIMPLÊNCIA ──────────
+    "19.876.543/0001-77": {
+        "consentimento_ativo": True,
+        "instituicoes_conectadas": ["Banco da Amazônia", "Banco do Brasil"],
+        "saldo_conta_corrente_brl": 42_000,
+        "saldo_3_meses_atras_brl": 1_350_000,
+        "tendencia_saldo": "colapso",
+        "receita_media_mensal_brl": 1_833_000,
+        "despesa_media_mensal_brl": 2_100_000,
+        "operacoes_credito_ativas": 6,
+        "valor_total_divida_brl": 18_000_000,
+        "parcelas_em_dia": 8,
+        "parcelas_atrasadas_30d": 5,
+        "parcelas_atrasadas_60d": 4,
+        "parcelas_atrasadas_90d": 2,
+        "limite_credito_total_brl": 18_500_000,
+        "limite_utilizado_brl": 18_000_000,
+        "utilizacao_credito_pct": 97.3,
+        "comprometimento_renda_pct": 89.4,
+        "indice_cobertura_divida": 0.54,
+        "score_pontualidade": 22,
+        "qtd_instituicoes_com_divida": 2,
+        "cheque_devolvido_12m": 7,
+        "protestos_12m": 4,
+        "risco_inadimplencia": "CRÍTICO",
+        "alerta_inadimplencia": True,
+        "meses_ate_risco_estimado": 1,
+        "observacao": "Despesas superam receitas. Saldo caiu 97% em 3 meses. "
+                      "11 parcelas atrasadas. Cobertura de dívida abaixo de 1. "
+                      "Inadimplência iminente.",
+    },
+
+    # ── TriAgro Coop — Rating A, sem flags ───────────────────────────────
+    "44.321.987/0001-66": {
+        "consentimento_ativo": True,
+        "instituicoes_conectadas": ["Sicredi", "Banco do Brasil", "Cresol", "Bradesco"],
+        "saldo_conta_corrente_brl": 18_200_000,
+        "saldo_3_meses_atras_brl": 15_800_000,
+        "tendencia_saldo": "crescente",
+        "receita_media_mensal_brl": 15_000_000,
+        "despesa_media_mensal_brl": 11_200_000,
+        "operacoes_credito_ativas": 8,
+        "valor_total_divida_brl": 36_000_000,
+        "parcelas_em_dia": 96,
+        "parcelas_atrasadas_30d": 0,
+        "parcelas_atrasadas_60d": 0,
+        "parcelas_atrasadas_90d": 0,
+        "limite_credito_total_brl": 80_000_000,
+        "limite_utilizado_brl": 36_000_000,
+        "utilizacao_credito_pct": 45.0,
+        "comprometimento_renda_pct": 16.8,
+        "indice_cobertura_divida": 3.57,
+        "score_pontualidade": 100,
+        "qtd_instituicoes_com_divida": 3,
+        "cheque_devolvido_12m": 0,
+        "protestos_12m": 0,
+        "risco_inadimplencia": "BAIXO",
+        "alerta_inadimplencia": False,
+        "meses_ate_risco_estimado": None,
+        "observacao": "Cooperativa de grande porte com saúde financeira robusta.",
+    },
+}
